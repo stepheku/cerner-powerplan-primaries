@@ -53,6 +53,12 @@ from pathway_catalog pwcat
     , order_catalog_synonym ocs2
     , outcome_catalog oc
     , order_catalog ord_cat
+    , dummyt d
+    , mltm_drug_id mdi
+    , mltm_drug_categories mdc
+    , mltm_drug_categories mdc2
+    , mltm_category_drug_xref mcdx
+    , mltm_category_sub_xref mcsx
 plan pwcat where pwcat.active_ind = 1
     and pwcat.type_mean in ("CAREPLAN", "PATHWAY")
     and pwcat.description_key like 'ONC*'
@@ -70,7 +76,14 @@ join pc2 where pc2.pathway_catalog_id = outerjoin(pwcat.pathway_catalog_id)
     and pc2.active_ind = outerjoin(1)
 join ocs where ocs.synonym_id = outerjoin(pc.parent_entity_id)
     and ocs.catalog_type_cd = value(uar_get_code_by("MEANING", 6000, "PHARMACY"))
+
 join ord_cat where ord_cat.catalog_cd = ocs.catalog_cd
+join mdi where concat("MUL.ORD!", cnvtstring(mdi.drug_identifier)) = outerjoin(ord_cat.cki)
+join mcdx where mcdx.drug_identifier = outerjoin(mdi.drug_identifier)
+join mdc where mdc.multum_category_id = outerjoin(mcdx.multum_category_id)
+join mcsx where mcsx.sub_category_id = outerjoin(mdc.multum_category_id)
+join mdc2 where mdc2.multum_category_id = outerjoin(mcsx.multum_category_id)
+
 join oc where oc.outcome_catalog_id = outerjoin(pc.parent_entity_id)
 join lt where lt.long_text_id = outerjoin(pc.parent_entity_id)
 join ocs3 where ocs3.synonym_id = outerjoin(pc2.parent_entity_id)
@@ -96,6 +109,8 @@ join ocs2 where ocs2.synonym_id = outerjoin(pcos.iv_comp_syn_id)
 join pcos2 where pcos2.pathway_comp_id = outerjoin(pc2.pathway_comp_id)
 join os2 where os2.order_sentence_id = outerjoin(pcos2.order_sentence_id)
 join lt4 where lt4.long_text_id = outerjoin(os2.ord_comment_long_text_id)
+
+join d where (pc.chemo_ind = 1 or mdc2.multum_category_id = 20 /*Chemotherapy*/)
 
 order by pwcat.description_key
     , pwcat2.pathway_catalog_id
