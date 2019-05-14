@@ -22,8 +22,8 @@ def get_catalog_primary_map(extract_df: pd.DataFrame) -> dict:
     Returns a mapping from catalog_cd to primary string value
     """
     unique_catalog_primary_df = extract_df[[
-        'CATALOG', 'PRIMARY']].drop_duplicates()
-    return_dict = unique_catalog_primary_df.set_index('CATALOG').to_dict()
+        'CATALOG_CD', 'PRIMARY']].drop_duplicates()
+    return_dict = unique_catalog_primary_df.set_index('CATALOG_CD').to_dict()
     return return_dict['PRIMARY']
 
 
@@ -45,7 +45,6 @@ def main():
     args = parser.parse_args()
     pwrpln_df = pd.read_excel(args.pwrpln_spreadsheet)
 
-    pwrpln_df = pd.read_excel('test_extract.xlsx')
     unique_catalog_cd = get_unique_catalog_cd(pwrpln_df)
     pwrpln_to_use = {}
 
